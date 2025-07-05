@@ -245,16 +245,18 @@ function saveProfileChanges() {
   // Show loading toast
   const loadingToast = showInfoToast('Saving your changes...', 'Saving Profile');
   
-  // Get current user data to preserve role
+  // Get current user data to preserve role and photo URL
   db.collection('users').doc(currentUser.uid).get()
     .then((doc) => {
       if (doc.exists) {
         const userData = doc.data();
         const role = userData.role || 'volunteer';
+        const currentPhotoURL = userData.photoURL || '';
         let mission = '', bannerURL = '';
         if (role === 'ngo') {
           mission = document.getElementById('profileMission').value.trim();
-          bannerURL = document.getElementById('bannerPreview').src;
+          const bannerPreview = document.getElementById('bannerPreview');
+          bannerURL = bannerPreview ? bannerPreview.src : '';
         }
         
         if (!name) {
@@ -269,6 +271,12 @@ function saveProfileChanges() {
           name, bio, skills: skillsArray, interests: interestsArray, role, phone, location,
           updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
+        
+        // Preserve existing photo URL if no new photo was uploaded
+        if (currentPhotoURL && currentPhotoURL !== '') {
+          updateData.photoURL = currentPhotoURL;
+        }
+        
         if (role === 'ngo') {
           updateData.mission = mission;
           if (bannerURL && !bannerURL.includes('default-banner.png')) updateData.bannerURL = bannerURL;
@@ -370,6 +378,13 @@ function uploadProfileImage(file) {
         .then((downloadURL) => {
           console.log('Compressed image uploaded to Firebase:', downloadURL);
           
+          // Update the profile image in UI with the Firebase URL
+          const profileImage = document.getElementById('profileImage');
+          if (profileImage) {
+            profileImage.src = downloadURL;
+            profileImage.style.display = 'block';
+          }
+          
           return db.collection('users').doc(user.uid).set({
             photoURL: downloadURL,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -442,6 +457,13 @@ function compressImage(file, quality = 0.8, maxWidth = 800) {
 // Save image as data URL to Firestore
 function saveImageDataURL(dataURL, userId) {
   console.log('saveImageDataURL called with dataURL length:', dataURL.length);
+  
+  // Update the profile image in UI immediately
+  const profileImage = document.getElementById('profileImage');
+  if (profileImage) {
+    profileImage.src = dataURL;
+    profileImage.style.display = 'block';
+  }
   
   db.collection('users').doc(userId).set({
     photoURL: dataURL,

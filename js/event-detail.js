@@ -68,40 +68,38 @@ function loadEventDetails() {
   const eventId = urlParams.get('id');
   
   if (!eventId) {
-    showErrorToast('Event ID not found');
+    console.error('No event ID provided');
+    document.body.innerHTML = '<p>Error: No event ID provided</p>';
     return;
   }
 
   console.log('Loading event details for ID:', eventId);
-
-  // Check if all required elements are present
-  if (!checkRequiredElements()) {
-    console.log('Waiting for DOM elements to be ready...');
-    setTimeout(() => {
-      loadEventDetails();
-    }, 200);
-    return;
-  }
 
   db.collection('events').doc(eventId).get()
     .then((doc) => {
       if (doc.exists) {
         const event = doc.data();
         console.log('Event data loaded:', event);
-        displayEventDetails(event, doc.id);
-        loadOrganizerInfo(event.ngoId);
-        checkApplicationStatus(doc.id);
+        
+        displayEventDetails(event, eventId);
+        updateEventMetaBadges(event);
+        displayOrganizerInfo(event);
+        
+        // Check application status for logged-in users
+        const user = auth.currentUser;
+        if (user) {
+          checkApplicationStatus(eventId);
+        }
       } else {
-        showErrorToast('Event not found');
+        console.error('Event not found');
+        document.body.innerHTML = '<p>Event not found</p>';
       }
     })
     .catch((error) => {
       console.error('Error loading event:', error);
-      showErrorToast('Error loading event details');
+      document.body.innerHTML = '<p>Error loading event details</p>';
     });
 }
-
-
 
 // Display event details
 function displayEventDetails(event, eventId) {
@@ -233,59 +231,6 @@ function updateEventMetaBadges(event) {
   } else if (locationBadge) {
     locationBadge.textContent = '📍 Location TBD';
   }
-}
-
-// Load organizer information
-function loadOrganizerInfo(ngoId) {
-  const organizerInfo = document.getElementById('organizerInfo');
-  if (!organizerInfo) {
-    console.warn('Organizer info element not found - this may indicate a DOM loading issue');
-    return;
-  }
-
-  if (!ngoId) {
-    organizerInfo.innerHTML = '<p>Organizer information not available</p>';
-    return;
-  }
-
-  db.collection('users').doc(ngoId).get()
-    .then((doc) => {
-      if (doc.exists) {
-        const organizer = doc.data();
-        displayOrganizerInfo(organizer);
-      } else {
-        organizerInfo.innerHTML = '<p>Organizer information not available</p>';
-      }
-    })
-    .catch((error) => {
-      console.error('Error loading organizer info:', error);
-      organizerInfo.innerHTML = '<p>Error loading organizer information</p>';
-    });
-}
-
-// Display organizer information
-function displayOrganizerInfo(organizer) {
-  const organizerInfo = document.getElementById('organizerInfo');
-  if (!organizerInfo) {
-    console.warn('Organizer info element not found - this may indicate a DOM loading issue');
-    return;
-  }
-
-  // Update the "Organized by" name in the correct element
-  const organizerNameP = document.getElementById('eventOrganizer');
-  if (organizerNameP) {
-    organizerNameP.textContent = 'Organized by: ' + (organizer.name || 'Unknown Organization');
-  }
-  
-  organizerInfo.innerHTML = `
-    <div class="organizer-details">
-      <h4>${organizer.name || 'Unknown Organization'}</h4>
-      ${organizer.mission ? `<p><strong>Mission:</strong> ${organizer.mission}</p>` : ''}
-      ${organizer.location ? `<p><strong>Location:</strong> ${organizer.location}</p>` : ''}
-      ${organizer.phone ? `<p><strong>Contact:</strong> ${organizer.phone}</p>` : ''}
-      ${organizer.email ? `<p><strong>Email:</strong> ${organizer.email}</p>` : ''}
-    </div>
-  `;
 }
 
 // Check if user has already applied
@@ -426,26 +371,47 @@ function applyToEvent() {
 // Create notification for NGO when someone applies
 function createNGONotification(eventId, volunteerId, event, userData) {
   const ngoId = event.ngoId;
-  const volunteerName = userData.name || userData.email.split('@')[0];
+  const volunteerName = userData.name || userData.email || 'Unknown Volunteer';
+  
+  // Validate required fields
+  if (!ngoId || !eventId || !volunteerId) {
+    console.error('Missing required fields for notification:', { ngoId, eventId, volunteerId });
+    return Promise.resolve(); // Return resolved promise to continue the flow
+  }
   
   // Create notification for NGO
   const notification = {
     type: 'new_application',
     eventId: eventId,
-    eventTitle: event.title,
+    eventTitle: event.title || 'Unknown Event',
     volunteerId: volunteerId,
     volunteerName: volunteerName,
-    volunteerEmail: userData.email,
-    message: `New application for "${event.title}"`,
+    volunteerEmail: userData.email || '',
+    ngoId: ngoId,
+    message: `New application for "${event.title || 'Unknown Event'}"`,
     createdAt: new Date().toISOString(),
     read: false
   };
 
-  // Add notification to NGO's document
-  return db.collection('users').doc(ngoId).update({
-    notifications: firebase.firestore.FieldValue.arrayUnion(notification),
-    unreadNotifications: firebase.firestore.FieldValue.increment(1)
-  });
+  // Store notification in a separate notifications collection
+  // This allows volunteers to create notifications without needing write access to NGO documents
+  return db.collection('notifications').add(notification)
+    .then((docRef) => {
+      console.log('Notification created successfully:', docRef.id);
+      return Promise.resolve();
+    })
+    .catch((error) => {
+      console.error('Error creating NGO notification:', error);
+      
+      // If it's a permissions error, log it but don't break the application
+      if (error.code === 'permission-denied') {
+        console.warn('Notification creation failed due to permissions. Please update Firebase security rules.');
+        console.warn('Copy the rules from firestore-security-rules.txt to your Firebase Console > Firestore Database > Rules');
+      }
+      
+      // Return resolved promise to prevent breaking the application flow
+      return Promise.resolve();
+    });
 }
 
 // Show notification
@@ -494,4 +460,29 @@ function showNotification(message, type = 'info') {
       }
     }, 300);
   }, 5000);
+}
+
+// Display organizer information from event document
+function displayOrganizerInfo(event) {
+  const organizerInfo = document.getElementById('organizerInfo');
+  if (!organizerInfo) {
+    console.warn('Organizer info element not found');
+    return;
+  }
+
+  // Update the "Organized by" name in the correct element
+  const organizerNameP = document.getElementById('eventOrganizer');
+  if (organizerNameP) {
+    organizerNameP.textContent = 'Organized by: ' + (event.organizerName || 'Unknown Organization');
+  }
+  
+  organizerInfo.innerHTML = `
+    <div class="organizer-details">
+      <h4>${event.organizerName || 'Unknown Organization'}</h4>
+      ${event.organizerMission ? `<p><strong>Mission:</strong> ${event.organizerMission}</p>` : ''}
+      ${event.organizerLocation ? `<p><strong>Location:</strong> ${event.organizerLocation}</p>` : ''}
+      ${event.organizerPhone ? `<p><strong>Contact:</strong> ${event.organizerPhone}</p>` : ''}
+      ${event.organizerEmail ? `<p><strong>Email:</strong> ${event.organizerEmail}</p>` : ''}
+    </div>
+  `;
 } 

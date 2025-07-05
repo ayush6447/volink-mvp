@@ -404,29 +404,11 @@ function displayVolunteerDashboard(userData) {
         <div class="dashboard-section-row">
           <div class="dashboard-section-card applications-card">
             <div class="card-header">
-              <h4>✅ Your Applications</h4>
+              <h4>📝 Applied Events</h4>
               <span class="applications-count" id="applicationsCount">0</span>
             </div>
             <div id="appliedEvents" class="applications-container">
               <p>Loading your applications...</p>
-            </div>
-          </div>
-          <div class="dashboard-section-card bookmarks-card">
-            <div class="card-header">
-              <h4>📌 Bookmarked Events</h4>
-              <button class="refresh-btn" onclick="loadBookmarkedEvents()" title="Refresh bookmarks">🔄</button>
-            </div>
-            <div id="bookmarkedEvents" class="bookmarks-container">
-              <p>Loading your bookmarks...</p>
-            </div>
-          </div>
-          <div class="dashboard-section-card history-card">
-            <div class="card-header">
-              <h4>📊 Volunteering History</h4>
-              <span class="history-count" id="historyCount">0</span>
-            </div>
-            <div id="volunteeringHistory" class="history-container">
-              <p>Loading your history...</p>
             </div>
           </div>
         </div>
@@ -454,16 +436,13 @@ function displayVolunteerDashboard(userData) {
   // Load user's applied events and data
   if (userData && userData.uid) {
     loadAppliedEvents(userData.uid);
-    loadVolunteeringHistory(userData.uid);
   } else {
     console.error('No user ID found for volunteer dashboard');
     document.getElementById('appliedEvents').innerHTML = '<p>Error: User ID not found.</p>';
-    document.getElementById('volunteeringHistory').innerHTML = '<p>Error: User ID not found.</p>';
   }
 
   // Load available events
   loadAvailableEvents();
-  loadBookmarkedEvents();
 }
 
 // Display NGO dashboard
@@ -723,9 +702,7 @@ function displayEventsWithStatus(events, container, appliedEvents) {
           </div>
         </div>
         <div class="event-pro-actions">
-          <button onclick="bookmarkEvent('${event.id}')" class="event-pro-btn bookmark-btn" title="Save for later">
-            📌 Bookmark
-          </button>
+          
           <a href="event-detail.html?id=${event.id}" class="event-pro-btn secondary">View Details</a>
           ${hasApplied ?
             `<button class="event-pro-btn applied" disabled>Applied</button>` :
@@ -753,200 +730,75 @@ function loadAppliedEvents(userId) {
   // Show skeleton loading
   showSkeletonLoading(appliedContainer, 'applications');
 
-  // Get user's applications from their profile
-  db.collection('users').doc(userId).get()
-    .then((userDoc) => {
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const applications = userData.applications || [];
-        
-        // Update applications count
-        const applicationsCount = document.getElementById('applicationsCount');
-        if (applicationsCount) {
-          applicationsCount.textContent = applications.length;
-        }
-        
-        if (applications.length === 0) {
-          appliedContainer.innerHTML = `
-            <div class="no-events">
-              <div class="no-events-icon">📝</div>
-              <h3>No Applications Yet</h3>
-              <p>You haven't applied to any events yet. Start by browsing available events!</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Get event details for each application
-        const eventPromises = applications.map(app => 
-          db.collection('events').doc(app.eventId).get()
-        );
-        
-        Promise.all(eventPromises)
-          .then((eventDocs) => {
-            const events = eventDocs
-              .filter(doc => doc.exists)
-              .map(doc => ({ ...doc.data(), id: doc.id }));
-            
-            let eventsHTML = '';
-            events.forEach((event) => {
-              const application = applications.find(app => app.eventId === event.id);
-              const eventDate = event.date ? new Date(event.date).toLocaleDateString() : 'TBD';
-              const category = EVENT_CATEGORIES[event.category] || EVENT_CATEGORIES.other;
-              const appliedDate = application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'Unknown';
-              let daysUntilEvent = '';
-              let urgencyClass = '';
-              if (event.date) {
-                const today = new Date();
-                const eventDay = new Date(event.date);
-                const diffTime = eventDay - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) {
-                  daysUntilEvent = 'Past event';
-                  urgencyClass = 'past';
-                } else if (diffDays === 0) {
-                  daysUntilEvent = 'Today';
-                  urgencyClass = 'urgent';
-                } else if (diffDays === 1) {
-                  daysUntilEvent = 'Tomorrow';
-                  urgencyClass = 'urgent';
-                } else if (diffDays <= 3) {
-                  daysUntilEvent = `${diffDays} days away`;
-                  urgencyClass = 'urgent';
-                } else if (diffDays <= 7) {
-                  daysUntilEvent = `${diffDays} days away`;
-                  urgencyClass = 'soon';
-                } else {
-                  daysUntilEvent = `${diffDays} days away`;
-                  urgencyClass = 'upcoming';
-                }
-              }
-              eventsHTML += `
-                <div class="event-card-pro event-card applied ${urgencyClass}">
-                  <div class="event-pro-header">
-                    <div class="event-pro-category">
-                      <span class="event-pro-category-badge" style="background: linear-gradient(90deg, #eaf1fb, #f3f6f8); color: #0a66c2;">
-                        ${category.icon} ${category.name}
-                      </span>
-                    </div>
-                    <div class="event-pro-date-group">
-                      <span class="event-pro-date"><span class="event-pro-date-icon">📅</span> ${eventDate}</span>
-                      ${daysUntilEvent ? `<span class="event-pro-days ${urgencyClass}">${daysUntilEvent}</span>` : ''}
-                    </div>
-                    <div class="event-pro-badges">
-                      <span class="event-pro-badge applied">Applied</span>
-                    </div>
-                  </div>
-                  <div class="event-pro-body">
-                    <h3 class="event-pro-title">${event.title}</h3>
-                    <p class="event-pro-desc">${event.description ? event.description.substring(0, 120) + (event.description.length > 120 ? '...' : '') : ''}</p>
-                    <div class="event-pro-details-grid">
-                      <div class="event-pro-detail">
-                        <span class="event-pro-detail-icon">📍</span>
-                        <span class="event-pro-detail-label">Location</span>
-                        <span class="event-pro-detail-value">${event.location || 'TBD'}</span>
-                      </div>
-                      <div class="event-pro-detail">
-                        <span class="event-pro-detail-icon">⏱️</span>
-                        <span class="event-pro-detail-label">Duration</span>
-                        <span class="event-pro-detail-value">${event.duration || 'TBD'}</span>
-                      </div>
-                      <div class="event-pro-detail">
-                        <span class="event-pro-detail-icon">👥</span>
-                        <span class="event-pro-detail-label">Volunteers</span>
-                        <span class="event-pro-detail-value">${event.volunteersNeeded || 1}</span>
-                      </div>
-                      <div class="event-pro-detail">
-                        <span class="event-pro-detail-icon">📅</span>
-                        <span class="event-pro-detail-label">Applied</span>
-                        <span class="event-pro-detail-value">${appliedDate}</span>
-                      </div>
-                      ${event.ngoName ? `
-                      <div class="event-pro-detail">
-                        <span class="event-pro-detail-icon">🏢</span>
-                        <span class="event-pro-detail-label">Organization</span>
-                        <span class="event-pro-detail-value">${event.ngoName}</span>
-                      </div>
-                      ` : ''}
-                    </div>
-                  </div>
-                  <div class="event-pro-actions">
-                    <a href="event-detail.html?id=${event.id}" class="event-pro-btn secondary">View Details</a>
-                  </div>
-                </div>
-              `;
-            });
-
-            appliedContainer.innerHTML = eventsHTML;
-          })
-          .catch((error) => {
-            console.error('Error loading event details:', error);
-            appliedContainer.innerHTML = '<p>Error loading event details.</p>';
-          });
-      } else {
-        appliedContainer.innerHTML = '<p>User data not found.</p>';
-      }
-    })
-    .catch((error) => {
-      console.error('Error loading applied events:', error);
-      appliedContainer.innerHTML = '<p>Error loading your applications.</p>';
-    });
-}
-
-// Load volunteering history
-function loadVolunteeringHistory(userId) {
-  const historyContainer = document.getElementById('volunteeringHistory');
-  if (!historyContainer) return;
-
-  // Check if userId is valid
-  if (!userId) {
-    console.error('Invalid userId for loadVolunteeringHistory');
-    historyContainer.innerHTML = '<p>Error: User ID not found.</p>';
-    return;
-  }
-
-  // Show skeleton loading
-  showSkeletonLoading(historyContainer, 'history');
-
-  db.collection('users').doc(userId).get()
-    .then((doc) => {
-      if (doc.exists) {
-        const userData = doc.data();
-        const applications = userData.applications || [];
-        
-        // Update history count
-        const historyCount = document.getElementById('historyCount');
-        if (historyCount) {
-          historyCount.textContent = applications.length;
-        }
-        
-        if (applications.length === 0) {
-          historyContainer.innerHTML = `
-            <div class="no-events">
-              <div class="no-events-icon">📊</div>
-              <h3>No History Yet</h3>
-              <p>Your volunteering history will appear here once you start applying to events.</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Sort applications by appliedAt date (newest first)
-        const sortedApplications = applications.sort((a, b) => {
-          if (a.appliedAt && b.appliedAt) {
-            return new Date(b.appliedAt) - new Date(a.appliedAt);
-          }
-          return 0;
+  // Get both user's applications and notifications they've created
+  Promise.all([
+    db.collection('users').doc(userId).get(),
+    db.collection('notifications').where('volunteerId', '==', userId).where('type', '==', 'new_application').get()
+  ])
+  .then(([userDoc, notificationsSnapshot]) => {
+    let allApplications = [];
+    
+    // Get applications from user document
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const userApplications = userData.applications || [];
+      allApplications = [...userApplications];
+    }
+    
+    // Get applications from notifications
+    notificationsSnapshot.forEach((doc) => {
+      const notification = doc.data();
+      // Check if this notification is not already in user applications
+      const exists = allApplications.some(app => app.eventId === notification.eventId);
+      if (!exists) {
+        allApplications.push({
+          eventId: notification.eventId,
+          eventTitle: notification.eventTitle,
+          appliedAt: notification.createdAt,
+          status: 'pending'
         });
+      }
+    });
+    
+    // Update applications count
+    const applicationsCount = document.getElementById('applicationsCount');
+    if (applicationsCount) {
+      applicationsCount.textContent = allApplications.length;
+    }
+    
+    if (allApplications.length === 0) {
+      appliedContainer.innerHTML = `
+        <div class="no-events">
+          <div class="no-events-icon">📝</div>
+          <h3>No Applications Yet</h3>
+          <p>You haven't applied to any events yet. Start by browsing available events!</p>
+        </div>
+      `;
+      return;
+    }
 
-        let historyHTML = '';
-        sortedApplications.forEach((application) => {
+    // Get event details for each application
+    const eventPromises = allApplications.map(app => 
+      db.collection('events').doc(app.eventId).get()
+    );
+    
+    Promise.all(eventPromises)
+      .then((eventDocs) => {
+        const events = eventDocs
+          .filter(doc => doc.exists)
+          .map(doc => ({ ...doc.data(), id: doc.id }));
+        
+        let eventsHTML = '';
+        events.forEach((event) => {
+          const application = allApplications.find(app => app.eventId === event.id);
+          const eventDate = event.date ? new Date(event.date).toLocaleDateString() : 'TBD';
+          const category = EVENT_CATEGORIES[event.category] || EVENT_CATEGORIES.other;
           const appliedDate = application.appliedAt ? new Date(application.appliedAt).toLocaleDateString() : 'Unknown';
           let daysUntilEvent = '';
           let urgencyClass = '';
-          if (application.eventDate) {
+          if (event.date) {
             const today = new Date();
-            const eventDay = new Date(application.eventDate);
+            const eventDay = new Date(event.date);
             const diffTime = eventDay - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             if (diffDays < 0) {
@@ -969,54 +821,76 @@ function loadVolunteeringHistory(userId) {
               urgencyClass = 'upcoming';
             }
           }
-          historyHTML += `
-            <div class="event-card-pro event-card history-item ${urgencyClass}">
+          eventsHTML += `
+            <div class="event-card-pro event-card applied ${urgencyClass}">
               <div class="event-pro-header">
                 <div class="event-pro-category">
                   <span class="event-pro-category-badge" style="background: linear-gradient(90deg, #eaf1fb, #f3f6f8); color: #0a66c2;">
-                    📊 History
+                    ${category.icon} ${category.name}
                   </span>
                 </div>
                 <div class="event-pro-date-group">
-                  <span class="event-pro-date"><span class="event-pro-date-icon">📅</span> ${appliedDate}</span>
+                  <span class="event-pro-date"><span class="event-pro-date-icon">📅</span> ${eventDate}</span>
                   ${daysUntilEvent ? `<span class="event-pro-days ${urgencyClass}">${daysUntilEvent}</span>` : ''}
                 </div>
                 <div class="event-pro-badges">
-                  <span class="event-pro-badge">${application.status === 'completed' ? 'Completed' : application.status === 'upcoming' ? 'Upcoming' : 'Pending'}</span>
+                  <span class="event-pro-badge applied">Applied</span>
                 </div>
               </div>
               <div class="event-pro-body">
-                <h3 class="event-pro-title">${application.eventTitle}</h3>
+                <h3 class="event-pro-title">${event.title}</h3>
+                <p class="event-pro-desc">${event.description ? event.description.substring(0, 120) + (event.description.length > 120 ? '...' : '') : ''}</p>
                 <div class="event-pro-details-grid">
+                  <div class="event-pro-detail">
+                    <span class="event-pro-detail-icon">📍</span>
+                    <span class="event-pro-detail-label">Location</span>
+                    <span class="event-pro-detail-value">${event.location || 'TBD'}</span>
+                  </div>
+                  <div class="event-pro-detail">
+                    <span class="event-pro-detail-icon">⏱️</span>
+                    <span class="event-pro-detail-label">Duration</span>
+                    <span class="event-pro-detail-value">${event.duration || 'TBD'}</span>
+                  </div>
+                  <div class="event-pro-detail">
+                    <span class="event-pro-detail-icon">👥</span>
+                    <span class="event-pro-detail-label">Volunteers</span>
+                    <span class="event-pro-detail-value">${event.volunteersNeeded || 1}</span>
+                  </div>
                   <div class="event-pro-detail">
                     <span class="event-pro-detail-icon">📅</span>
                     <span class="event-pro-detail-label">Applied</span>
                     <span class="event-pro-detail-value">${appliedDate}</span>
                   </div>
+                  ${event.ngoName ? `
                   <div class="event-pro-detail">
-                    <span class="event-pro-detail-icon">📋</span>
-                    <span class="event-pro-detail-label">Status</span>
-                    <span class="event-pro-detail-value">${application.status || 'pending'}</span>
+                    <span class="event-pro-detail-icon">🏢</span>
+                    <span class="event-pro-detail-label">Organization</span>
+                    <span class="event-pro-detail-value">${event.ngoName}</span>
                   </div>
+                  ` : ''}
                 </div>
               </div>
               <div class="event-pro-actions">
-                <a href="event-detail.html?id=${application.eventId}" class="event-pro-btn secondary">View Event</a>
+                <a href="event-detail.html?id=${event.id}" class="event-pro-btn secondary">View Details</a>
               </div>
             </div>
           `;
         });
 
-        historyContainer.innerHTML = historyHTML;
-      } else {
-        historyContainer.innerHTML = '<p>No volunteering history found.</p>';
-      }
-    })
-    .catch((error) => {
-      console.error('Error loading volunteering history:', error);
-      historyContainer.innerHTML = '<p>Error loading your history.</p>';
-    });
+        appliedContainer.innerHTML = eventsHTML;
+      })
+      .catch((error) => {
+        console.error('Error loading event details:', error);
+        appliedContainer.innerHTML = '<p>Error loading event details.</p>';
+      });
+  })
+  .catch((error) => {
+    console.error('Error loading applied events:', error);
+    appliedContainer.innerHTML = '<p>Error loading your applications.</p>';
+  });
 }
+
+
 
 // Load NGO events
 function loadNGOEvents(ngoId, statusFilter = null) {
@@ -1052,37 +926,52 @@ function loadNGOEvents(ngoId, statusFilter = null) {
         return;
       }
 
-      let eventsHTML = '';
-      querySnapshot.forEach((doc) => {
-        const event = doc.data();
-        const eventDate = event.date ? new Date(event.date).toLocaleDateString() : 'TBD';
-        const applicantCount = event.applicants ? event.applicants.length : 0;
-        
-        eventsHTML += `
-          <div class="event-card">
-            <h3>${event.title}</h3>
-            <p>${event.description}</p>
-            <div class="event-details">
-              <span><strong>Date:</strong> ${eventDate}</span>
-              <span><strong>Location:</strong> ${event.location || 'Not specified'}</span>
-              <span><strong>Applicants:</strong> ${applicantCount}</span>
-            </div>
-            <div class="event-actions">
-              <button class="event-btn secondary" onclick="viewApplicants('${doc.id}')">
-                View Applicants
-              </button>
-              <button class="event-btn secondary" onclick="editEvent('${doc.id}')">
-                Edit
-              </button>
-              <button class="event-btn error" onclick="deleteEvent('${doc.id}')">
-                Delete
-              </button>
-            </div>
-          </div>
-        `;
-      });
+      // Get all notifications for this NGO to count applicants
+      return db.collection('notifications')
+        .where('ngoId', '==', ngoId)
+        .where('type', '==', 'new_application')
+        .get()
+        .then((notificationsSnapshot) => {
+          // Create a map of eventId to applicant count
+          const applicantCounts = {};
+          notificationsSnapshot.forEach((doc) => {
+            const notification = doc.data();
+            const eventId = notification.eventId;
+            applicantCounts[eventId] = (applicantCounts[eventId] || 0) + 1;
+          });
 
-      eventsContainer.innerHTML = eventsHTML;
+          let eventsHTML = '';
+          querySnapshot.forEach((doc) => {
+            const event = doc.data();
+            const eventDate = event.date ? new Date(event.date).toLocaleDateString() : 'TBD';
+            const applicantCount = applicantCounts[doc.id] || 0;
+            
+            eventsHTML += `
+              <div class="event-card">
+                <h3>${event.title}</h3>
+                <p>${event.description}</p>
+                <div class="event-details">
+                  <span><strong>Date:</strong> ${eventDate}</span>
+                  <span><strong>Location:</strong> ${event.location || 'Not specified'}</span>
+                  <span><strong>Applicants:</strong> ${applicantCount}</span>
+                </div>
+                <div class="event-actions">
+                  <button class="event-btn secondary" onclick="viewApplicants('${doc.id}')">
+                    View Applicants
+                  </button>
+                  <button class="event-btn secondary" onclick="editEvent('${doc.id}')">
+                    Edit
+                  </button>
+                  <button class="event-btn error" onclick="deleteEvent('${doc.id}')">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            `;
+          });
+
+          eventsContainer.innerHTML = eventsHTML;
+        });
     })
     .catch((error) => {
       console.error('Error loading NGO events:', error);
@@ -1177,37 +1066,50 @@ function applyToEvent(eventId) {
 // Create notification for NGO when someone applies
 function createNGONotification(eventId, volunteerId, event, userData) {
   const ngoId = event.ngoId;
-  const volunteerName = userData.name || userData.email.split('@')[0];
+  const volunteerName = userData.name || userData.email || 'Unknown Volunteer';
   
-  // Create notification for NGO
+  // Validate required fields
+  if (!ngoId || !eventId || !volunteerId) {
+    console.error('Missing required fields for notification:', { ngoId, eventId, volunteerId });
+    return Promise.resolve(); // Return resolved promise to continue the flow
+  }
+  
+  // Create notification for NGO with comprehensive volunteer information
   const notification = {
     type: 'new_application',
     eventId: eventId,
-    eventTitle: event.title,
+    eventTitle: event.title || 'Unknown Event',
     volunteerId: volunteerId,
     volunteerName: volunteerName,
-    volunteerEmail: userData.email,
-    message: `New application for "${event.title}"`,
+    volunteerEmail: userData.email || '',
+    volunteerBio: userData.bio || '',
+    volunteerSkills: userData.skills || [],
+    volunteerLocation: userData.location || '',
+    volunteerPhone: userData.phone || '',
+    ngoId: ngoId,
+    message: `New application for "${event.title || 'Unknown Event'}"`,
     createdAt: new Date().toISOString(),
     read: false
   };
-  
-  // Add notification to NGO's notifications
-  return db.collection('users').doc(ngoId).get()
-    .then((ngoDoc) => {
-      if (ngoDoc.exists) {
-        const ngoData = ngoDoc.data();
-        const notifications = ngoData.notifications || [];
-        notifications.push(notification);
-        
-        return db.collection('users').doc(ngoId).update({
-          notifications: notifications,
-          unreadNotifications: (ngoData.unreadNotifications || 0) + 1
-        });
-      }
+
+  // Store notification in a separate notifications collection
+  // This allows volunteers to create notifications without needing write access to NGO documents
+  return db.collection('notifications').add(notification)
+    .then((docRef) => {
+      console.log('Notification created successfully:', docRef.id);
+      return Promise.resolve();
     })
     .catch((error) => {
       console.error('Error creating NGO notification:', error);
+      
+      // If it's a permissions error, log it but don't break the application
+      if (error.code === 'permission-denied') {
+        console.warn('Notification creation failed due to permissions. Please update Firebase security rules.');
+        console.warn('Copy the rules from firestore-security-rules.txt to your Firebase Console > Firestore Database > Rules');
+      }
+      
+      // Return resolved promise to prevent breaking the application flow
+      return Promise.resolve();
     });
 }
 
@@ -1516,38 +1418,59 @@ function createEvent() {
   const volunteersNeeded = parseInt(document.getElementById('eventVolunteers').value) || 1;
   const googleFormUrl = document.getElementById('googleFormUrl').value.trim();
 
-  const eventData = {
-    title: title,
-    category: category,
-    description: description,
-    date: date,
-    location: location,
-    duration: duration || null,
-    skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
-    volunteersNeeded: volunteersNeeded,
-    googleFormUrl: googleFormUrl || null,
-    ngoId: user.uid,
-    status: 'active',
-    applicants: [],
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  // Show loading toast
-  const loadingToast = showInfoToast('Creating your event...', 'Creating Event');
-
-  db.collection('events').add(eventData)
-    .then((docRef) => {
-      dismissToast(loadingToast);
-      showSuccessToast('Event created successfully!', 'Event Created');
-      hideEventForm();
-      loadNGOEvents(user.uid);
+  // Get current user data to include organizer information
+  db.collection('users').doc(user.uid).get()
+    .then((userDoc) => {
+      const userData = userDoc.data();
       
-      // Log event creation for analytics
-      console.log('Event created:', docRef.id);
+      const eventData = {
+        title: title,
+        category: category,
+        description: description,
+        date: date,
+        location: location,
+        duration: duration || null,
+        skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
+        volunteersNeeded: volunteersNeeded,
+        googleFormUrl: googleFormUrl || null,
+        ngoId: user.uid,
+        // Include organizer information in the event document
+        organizerName: userData.name || userData.email || 'Unknown Organization',
+        organizerEmail: userData.email || '',
+        organizerMission: userData.mission || '',
+        organizerLocation: userData.location || '',
+        organizerPhone: userData.phone || '',
+        status: 'active',
+        applicants: [],
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // Show loading toast
+      const loadingToast = showInfoToast('Creating your event...', 'Creating Event');
+
+      return db.collection('events').add(eventData)
+        .then((docRef) => {
+          dismissToast(loadingToast);
+          showSuccessToast('Event created successfully!', 'Event Created');
+          hideEventForm();
+          loadNGOEvents(user.uid);
+          
+          // Log event creation for analytics
+          console.log('Event created:', docRef.id);
+        })
+        .catch((error) => {
+          console.error('Error creating event:', error);
+          dismissToast(loadingToast);
+          showErrorToast('Error creating event. Please try again.', 'Creation Failed');
+          
+          // Reset button state
+          submitBtn.disabled = false;
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+        });
     })
     .catch((error) => {
-      console.error('Error creating event:', error);
-      dismissToast(loadingToast);
+      console.error('Error getting user data:', error);
       showErrorToast('Error creating event. Please try again.', 'Creation Failed');
       
       // Reset button state
@@ -1581,35 +1504,56 @@ function updateEvent(eventId) {
   const volunteersNeeded = parseInt(document.getElementById('eventVolunteers').value) || 1;
   const googleFormUrl = document.getElementById('googleFormUrl').value.trim();
 
-  const updateData = {
-    title: title,
-    category: category,
-    description: description,
-    date: date,
-    location: location,
-    duration: duration || null,
-    skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
-    volunteersNeeded: volunteersNeeded,
-    googleFormUrl: googleFormUrl || null,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  // Show loading toast
-  const loadingToast = showInfoToast('Updating your event...', 'Updating Event');
-
-  db.collection('events').doc(eventId).update(updateData)
-    .then(() => {
-      dismissToast(loadingToast);
-      showSuccessToast('Event updated successfully!', 'Event Updated');
-      hideEventForm();
-      loadNGOEvents(user.uid);
+  // Get current user data to include organizer information
+  db.collection('users').doc(user.uid).get()
+    .then((userDoc) => {
+      const userData = userDoc.data();
       
-      // Log event update for analytics
-      console.log('Event updated:', eventId);
+      const updateData = {
+        title: title,
+        category: category,
+        description: description,
+        date: date,
+        location: location,
+        duration: duration || null,
+        skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
+        volunteersNeeded: volunteersNeeded,
+        googleFormUrl: googleFormUrl || null,
+        // Update organizer information in the event document
+        organizerName: userData.name || userData.email || 'Unknown Organization',
+        organizerEmail: userData.email || '',
+        organizerMission: userData.mission || '',
+        organizerLocation: userData.location || '',
+        organizerPhone: userData.phone || '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      // Show loading toast
+      const loadingToast = showInfoToast('Updating your event...', 'Updating Event');
+
+      return db.collection('events').doc(eventId).update(updateData)
+        .then(() => {
+          dismissToast(loadingToast);
+          showSuccessToast('Event updated successfully!', 'Event Updated');
+          hideEventForm();
+          loadNGOEvents(user.uid);
+          
+          // Log event update for analytics
+          console.log('Event updated:', eventId);
+        })
+        .catch((error) => {
+          console.error('Error updating event:', error);
+          dismissToast(loadingToast);
+          showErrorToast('Error updating event. Please try again.', 'Update Failed');
+          
+          // Reset button state
+          submitBtn.disabled = false;
+          btnText.style.display = 'inline';
+          btnLoading.style.display = 'none';
+        });
     })
     .catch((error) => {
-      console.error('Error updating event:', error);
-      dismissToast(loadingToast);
+      console.error('Error getting user data:', error);
       showErrorToast('Error updating event. Please try again.', 'Update Failed');
       
       // Reset button state
@@ -1653,68 +1597,96 @@ function viewApplicants(eventId) {
     .then((doc) => {
       if (doc.exists) {
         const event = doc.data();
-        const applicants = event.applicants || [];
         
-        if (applicants.length === 0) {
-          showNotification('No applicants yet for this event.', 'info');
+        // Get current user to determine NGO ID
+        const currentUser = auth.currentUser;
+        const ngoId = currentUser ? currentUser.uid : null;
+        
+        if (!ngoId) {
+          showNotification('User not authenticated', 'error');
           return;
         }
+        
+        // Get all notifications for this NGO and filter in JavaScript
+        return db.collection('notifications')
+          .where('ngoId', '==', ngoId)
+          .where('type', '==', 'new_application')
+          .get()
+          .then((notificationsSnapshot) => {
+            // Filter notifications for this specific event
+            const applicants = [];
+            notificationsSnapshot.forEach((notificationDoc) => {
+              const notification = notificationDoc.data();
+              if (notification.eventId === eventId) {
+                applicants.push({
+                  volunteerId: notification.volunteerId,
+                  volunteerName: notification.volunteerName,
+                  volunteerEmail: notification.volunteerEmail,
+                  volunteerBio: notification.volunteerBio,
+                  volunteerSkills: notification.volunteerSkills,
+                  volunteerLocation: notification.volunteerLocation,
+                  volunteerPhone: notification.volunteerPhone,
+                  appliedAt: notification.createdAt
+                });
+              }
+            });
+            
+            if (applicants.length === 0) {
+              showNotification('No applicants yet for this event.', 'info');
+              return;
+            }
 
-        // Get applicant details
-        const applicantPromises = applicants.map(uid => 
-          db.collection('users').doc(uid).get()
-        );
-
-        Promise.all(applicantPromises)
-          .then((applicantDocs) => {
             let applicantsHTML = `
               <div class="applicants-header">
                 <h3>👥 Applicants for "${event.title}"</h3>
-                <p class="applicants-count">${applicantDocs.filter(doc => doc.exists).length} applicant(s)</p>
+                <p class="applicants-count">${applicants.length} applicant(s)</p>
               </div>
             `;
             
-            applicantDocs.forEach((doc, index) => {
-              if (doc.exists) {
-                const user = doc.data();
-                const skills = user.skills && Array.isArray(user.skills) ? user.skills.join(', ') : 'None specified';
-                const bio = user.bio || 'No bio provided';
-                
-                applicantsHTML += `
-                  <div class="applicant-card">
-                    <div class="applicant-header">
-                      <div class="applicant-avatar">
-                        <span>${user.name ? user.name.charAt(0).toUpperCase() : 'V'}</span>
-                      </div>
-                      <div class="applicant-info">
-                        <h4>${user.name || 'Unknown Volunteer'}</h4>
-                        <p class="applicant-email">${user.email || 'No email provided'}</p>
-                      </div>
+            applicants.forEach((applicant) => {
+              const skills = applicant.volunteerSkills && Array.isArray(applicant.volunteerSkills) ? applicant.volunteerSkills.join(', ') : 'None specified';
+              const bio = applicant.volunteerBio || 'No bio provided';
+              const appliedDate = applicant.appliedAt ? new Date(applicant.appliedAt).toLocaleDateString() : 'Unknown';
+              
+              applicantsHTML += `
+                <div class="applicant-card">
+                  <div class="applicant-header">
+                    <div class="applicant-avatar">
+                      <span>${applicant.volunteerName ? applicant.volunteerName.charAt(0).toUpperCase() : 'V'}</span>
                     </div>
-                    
-                    <div class="applicant-details">
-                      <div class="detail-item">
-                        <span class="detail-label">📞 Phone:</span>
-                        <span class="detail-value">${user.phone || 'Not provided'}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">🛠️ Skills:</span>
-                        <span class="detail-value">${skills}</span>
-                      </div>
-                      <div class="detail-item">
-                        <span class="detail-label">📝 Bio:</span>
-                        <span class="detail-value">${bio}</span>
-                      </div>
-                    </div>
-                    
-                    <div class="applicant-actions">
-                      ${user.email ? `<a href="mailto:${user.email}" class="contact-btn email">📧 Email</a>` : ''}
-                      ${user.phone ? `<a href="tel:${user.phone}" class="contact-btn call">📞 Call</a>` : ''}
-                      <button class="contact-btn message" onclick="sendMessage('${user.uid}', '${user.name}')">💬 Message</button>
+                    <div class="applicant-info">
+                      <h4>${applicant.volunteerName || 'Unknown Volunteer'}</h4>
+                      <p class="applicant-email">${applicant.volunteerEmail || 'No email provided'}</p>
+                      <p class="application-date">Applied: ${appliedDate}</p>
                     </div>
                   </div>
-                `;
-              }
+                  
+                  <div class="applicant-details">
+                    <div class="detail-item">
+                      <span class="detail-label">📞 Phone:</span>
+                      <span class="detail-value">${applicant.volunteerPhone || 'Not provided'}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">📍 Location:</span>
+                      <span class="detail-value">${applicant.volunteerLocation || 'Not provided'}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">🛠️ Skills:</span>
+                      <span class="detail-value">${skills}</span>
+                    </div>
+                    <div class="detail-item">
+                      <span class="detail-label">📝 Bio:</span>
+                      <span class="detail-value">${bio}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="applicant-actions">
+                    ${applicant.volunteerEmail ? `<a href="mailto:${applicant.volunteerEmail}" class="contact-btn email">📧 Email</a>` : ''}
+                    ${applicant.volunteerPhone ? `<a href="tel:${applicant.volunteerPhone}" class="contact-btn call">📞 Call</a>` : ''}
+                    <button class="contact-btn message" onclick="sendMessage('${applicant.volunteerId}', '${applicant.volunteerName}')">💬 Message</button>
+                  </div>
+                </div>
+              `;
             });
 
             // Show applicants in a modal
@@ -1731,9 +1703,11 @@ function viewApplicants(eventId) {
             document.body.insertAdjacentHTML('beforeend', modalHTML);
           })
           .catch((error) => {
-            console.error('Error loading applicants:', error);
+            console.error('Error loading notifications:', error);
             showNotification('Error loading applicants.', 'error');
           });
+      } else {
+        showNotification('Event not found.', 'error');
       }
     })
     .catch((error) => {
@@ -1744,11 +1718,35 @@ function viewApplicants(eventId) {
 
 // Send message to volunteer
 function sendMessage(volunteerId, volunteerName) {
-  const message = prompt(`Send a message to ${volunteerName}:`);
+  const message = prompt(`Send a message to ${volunteerName}:\n\n(Note: This will open your default email client)`);
+  
   if (message && message.trim()) {
-    // For now, we'll just show a notification
-    // In a full implementation, this would save to Firestore and send notifications
-    showNotification(`Message sent to ${volunteerName}!`, 'success');
+    // Get volunteer's email
+    db.collection('users').doc(volunteerId).get()
+      .then((doc) => {
+        if (doc.exists) {
+          const volunteer = doc.data();
+          const email = volunteer.email;
+          
+          if (email) {
+            // Open email client with pre-filled message
+            const subject = encodeURIComponent('Message from Volink NGO');
+            const body = encodeURIComponent(`Hello ${volunteerName},\n\n${message}\n\nBest regards,\nYour Volink Team`);
+            const mailtoLink = `mailto:${email}?subject=${subject}&body=${body}`;
+            
+            window.open(mailtoLink, '_blank');
+            showNotification('Email client opened with your message', 'success');
+          } else {
+            showNotification('Volunteer email not found', 'error');
+          }
+        } else {
+          showNotification('Volunteer not found', 'error');
+        }
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+        showNotification('Error sending message', 'error');
+      });
   }
 }
 
@@ -1789,25 +1787,11 @@ function loadNGOStatistics(ngoId) {
   Promise.all([
     db.collection('events').where('ngoId', '==', ngoId).get(),
     db.collection('events').where('ngoId', '==', ngoId).where('status', '==', 'active').get(),
-    db.collection('users').get() // Get all users to aggregate applications
+    db.collection('notifications').where('ngoId', '==', ngoId).where('type', '==', 'new_application').get()
   ])
-  .then(([totalEvents, activeEvents, usersSnapshot]) => {
-    // Aggregate total applicants for this NGO
-    let totalApplicants = 0;
-    usersSnapshot.forEach(doc => {
-      const user = doc.data();
-      if (user.applications && Array.isArray(user.applications)) {
-        totalApplicants += user.applications.filter(app => app.ngoId === ngoId).length;
-      }
-    });
-
-    // Also count applicants from events
-    totalEvents.forEach(doc => {
-      const event = doc.data();
-      if (event.applicants && Array.isArray(event.applicants)) {
-        totalApplicants += event.applicants.length;
-      }
-    });
+  .then(([totalEvents, activeEvents, notifications]) => {
+    // Count total applicants from notifications
+    const totalApplicants = notifications.size;
 
     if (totalEventsEl) totalEventsEl.textContent = totalEvents.size;
     if (activeEventsEl) activeEventsEl.textContent = activeEvents.size;
@@ -1835,53 +1819,70 @@ function loadRecentApplicants(ngoId) {
     return;
   }
 
-  // Try to get from events with applicants first (this should work with current permissions)
-  db.collection('events').where('ngoId', '==', ngoId).get()
-    .then((eventsSnapshot) => {
-      if (eventsSnapshot && !eventsSnapshot.empty) {
-        let applicantsHTML = '';
-        let applicantCount = 0;
-        
-        eventsSnapshot.forEach((doc) => {
-          const event = doc.data();
-          if (event.applicants && Array.isArray(event.applicants) && event.applicants.length > 0) {
-            event.applicants.forEach((applicantId, index) => {
-              if (applicantCount < 5) {
-                applicantsHTML += `
-                  <div class="applicant-item">
-                    <div class="applicant-info">
-                      <div class="applicant-avatar-small">
-                        <span>V</span>
-                      </div>
-                      <div class="applicant-details-small">
-                        <strong>Volunteer ${index + 1}</strong>
-                        <span class="event-title">${event.title || 'Unknown Event'}</span>
-                      </div>
-                    </div>
-                    <div class="applicant-actions">
-                      <button class="small-btn primary" onclick="viewApplicant('${doc.id}-${applicantId}')">View</button>
-                      <button class="small-btn secondary" onclick="sendMessage('${applicantId}', 'Volunteer ${index + 1}')">Contact</button>
-                    </div>
-                  </div>
-                `;
-                applicantCount++;
-              }
-            });
-          }
-        });
+  // Show loading state
+  applicantsContainer.innerHTML = '<p style="color: #666666; text-align: center; padding: 1rem;">Loading recent applicants...</p>';
 
-        if (applicantCount > 0) {
-          applicantsContainer.innerHTML = applicantsHTML;
-        } else {
-          applicantsContainer.innerHTML = '<p style="color: #666666; text-align: center; padding: 1rem;">No recent applicants</p>';
-        }
-      } else {
+  // Get notifications for this NGO from the notifications collection
+  // Simplified query to avoid composite index requirement
+  db.collection('notifications')
+    .where('ngoId', '==', ngoId)
+    .where('type', '==', 'new_application')
+    .get()
+    .then((notificationsSnapshot) => {
+      if (notificationsSnapshot.empty) {
         applicantsContainer.innerHTML = '<p style="color: #666666; text-align: center; padding: 1rem;">No recent applicants</p>';
+        return;
       }
+
+      // Convert to array and sort by createdAt (newest first)
+      const notifications = [];
+      notificationsSnapshot.forEach((doc) => {
+        notifications.push({
+          id: doc.id,
+          ...doc.data()
+        });
+      });
+
+      // Sort by createdAt date (newest first)
+      notifications.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+
+      // Take only the 5 most recent
+      const recentNotifications = notifications.slice(0, 5);
+
+      let applicantsHTML = '';
+      
+      recentNotifications.forEach((notification) => {
+        const appliedDate = notification.createdAt ? new Date(notification.createdAt).toLocaleDateString() : 'Unknown';
+        
+        applicantsHTML += `
+          <div class="applicant-item">
+            <div class="applicant-info">
+              <div class="applicant-avatar-small">
+                <span>${notification.volunteerName.charAt(0).toUpperCase()}</span>
+              </div>
+              <div class="applicant-details-small">
+                <strong>${notification.volunteerName}</strong>
+                <span class="event-title">${notification.eventTitle || 'Unknown Event'}</span>
+                <span class="application-date">Applied: ${appliedDate}</span>
+              </div>
+            </div>
+            <div class="applicant-actions">
+              <button class="small-btn primary" onclick="viewApplicant('${notification.volunteerId}', '${notification.eventId}')">View</button>
+              <button class="small-btn secondary" onclick="sendMessage('${notification.volunteerId}', '${notification.volunteerName}')">Contact</button>
+            </div>
+          </div>
+        `;
+      });
+
+      applicantsContainer.innerHTML = applicantsHTML;
     })
     .catch((error) => {
       console.error('Error loading recent applicants:', error);
-      applicantsContainer.innerHTML = '<p style="color: #666666; text-align: center; padding: 1rem;">No recent applicants</p>';
+      applicantsContainer.innerHTML = '<p style="color: #666666; text-align: center; padding: 1rem;">Error loading applicants</p>';
     });
 }
 
@@ -2257,9 +2258,7 @@ function displaySearchResults(events) {
         </div>
         
         <div class="result-actions">
-          <button onclick="bookmarkEvent('${event.id}')" class="result-btn bookmark-btn" title="Save for later">
-            📌 Bookmark
-          </button>
+          
           <a href="event-detail.html?id=${event.id}" class="result-btn secondary">View Details</a>
           <button onclick="applyToEvent('${event.id}')" class="result-btn primary">Apply Now</button>
         </div>
@@ -2348,361 +2347,138 @@ function closeSearchModal() {
 }
 
 // View applicant details
-function viewApplicant(applicationId) {
-  // Handle the case where applicationId might be in format "eventId-applicantId"
-  const parts = applicationId.split('-');
-  const eventId = parts[0];
-  const applicantId = parts[1] || applicationId;
-  
-  // Try to get applicant details from users collection
-  db.collection('users').doc(applicantId).get()
-    .then((doc) => {
-      if (doc.exists) {
-        const user = doc.data();
-        const skills = user.skills && Array.isArray(user.skills) ? user.skills.join(', ') : 'None specified';
-        const bio = user.bio || 'No bio provided';
-        
-        const applicantModal = `
-          <div class="applicant-modal-overlay">
-            <div class="applicant-modal">
-              <div class="applicant-header">
-                <div class="applicant-avatar">
-                  <span>${user.name ? user.name.charAt(0).toUpperCase() : 'V'}</span>
-                </div>
-                <div class="applicant-info">
-                  <h3>${user.name || 'Unknown Volunteer'}</h3>
-                  <p class="applicant-email">${user.email || 'No email provided'}</p>
-                </div>
-              </div>
-              
-              <div class="applicant-details">
-                <div class="detail-item">
-                  <span class="detail-label">📞 Phone:</span>
-                  <span class="detail-value">${user.phone || 'Not provided'}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">🛠️ Skills:</span>
-                  <span class="detail-value">${skills}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="detail-label">📝 Bio:</span>
-                  <span class="detail-value">${bio}</span>
-                </div>
-              </div>
-              
-              <div class="applicant-actions">
-                ${user.email ? `<a href="mailto:${user.email}" class="contact-btn email">📧 Email</a>` : ''}
-                ${user.phone ? `<a href="tel:${user.phone}" class="contact-btn call">📞 Call</a>` : ''}
-                <button class="contact-btn message" onclick="sendMessage('${user.uid}', '${user.name}')">💬 Message</button>
-                <button class="cancel-btn" onclick="closeApplicantModal()">Close</button>
-              </div>
-            </div>
-          </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', applicantModal);
-      } else {
-        showNotification('Applicant details not found.', 'error');
-      }
-    })
-    .catch((error) => {
-      console.error('Error loading applicant details:', error);
-      showNotification('Error loading applicant details.', 'error');
-    });
-}
-
-// Close applicant modal
-function closeApplicantModal() {
-  const overlay = document.querySelector('.applicant-modal-overlay');
-  if (overlay) overlay.remove();
-}
-
-// Close applicants modal
-function closeApplicantsModal() {
-  const overlay = document.querySelector('.applicants-modal-overlay');
-  if (overlay) overlay.remove();
-}
-
-// Event Bookmarking System
-function bookmarkEvent(eventId) {
-  const user = auth.currentUser;
-  if (!user) {
-    showErrorToast('Please log in to bookmark events.');
-    return;
-  }
-
+function viewApplicant(volunteerId, eventId) {
   // Get event details first
   db.collection('events').doc(eventId).get()
     .then((eventDoc) => {
       if (eventDoc.exists) {
         const event = eventDoc.data();
         
-        // Check if already bookmarked
-        return db.collection('users').doc(user.uid).get()
-          .then((userDoc) => {
-            const userData = userDoc.data();
-            const bookmarks = userData.bookmarks || [];
-            const isBookmarked = bookmarks.some(bookmark => bookmark.eventId === eventId);
+        // Get all notifications for this NGO and filter in JavaScript
+        const currentUser = auth.currentUser;
+        const ngoId = currentUser ? currentUser.uid : null;
+        
+        if (!ngoId) {
+          showNotification('User not authenticated', 'error');
+          return;
+        }
+        
+        db.collection('notifications')
+          .where('ngoId', '==', ngoId)
+          .where('type', '==', 'new_application')
+          .get()
+          .then((notificationsSnapshot) => {
+            // Find the specific notification for this volunteer and event
+            let targetNotification = null;
+            notificationsSnapshot.forEach((doc) => {
+              const notification = doc.data();
+              if (notification.volunteerId === volunteerId && notification.eventId === eventId) {
+                targetNotification = notification;
+              }
+            });
             
-            if (isBookmarked) {
-              // Remove bookmark
-              const updatedBookmarks = bookmarks.filter(bookmark => bookmark.eventId !== eventId);
-              return db.collection('users').doc(user.uid).update({
-                bookmarks: updatedBookmarks
-              }).then(() => {
-                showSuccessToast('Event removed from bookmarks', 'Bookmark Removed');
-                updateBookmarkButton(eventId, false);
-              });
-            } else {
-              // Add bookmark
-              const bookmarkData = {
-                eventId: eventId,
-                eventTitle: event.title,
-                eventCategory: event.category,
-                eventDate: event.date,
-                eventLocation: event.location,
-                bookmarkedAt: new Date().toISOString()
-              };
+            if (targetNotification) {
+              const appliedDate = targetNotification.createdAt ? new Date(targetNotification.createdAt).toLocaleDateString() : 'Unknown';
               
-              return db.collection('users').doc(user.uid).update({
-                bookmarks: firebase.firestore.FieldValue.arrayUnion(bookmarkData)
-              }).then(() => {
-                showSuccessToast('Event added to bookmarks', 'Bookmark Added');
-                updateBookmarkButton(eventId, true);
-              });
+              const modalHTML = `
+                <div class="applicant-modal-overlay">
+                  <div class="applicant-modal">
+                    <div class="applicant-modal-header">
+                      <h3>👤 Applicant Details</h3>
+                      <button class="close-btn" onclick="closeApplicantModal()">×</button>
+                    </div>
+                    <div class="applicant-modal-content">
+                      <div class="applicant-profile">
+                        <div class="applicant-avatar">
+                          <span>${targetNotification.volunteerName ? targetNotification.volunteerName.charAt(0).toUpperCase() : 'V'}</span>
+                        </div>
+                        <div class="applicant-info">
+                          <h4>${targetNotification.volunteerName || 'Unknown Volunteer'}</h4>
+                          <p>${targetNotification.volunteerEmail || 'No email provided'}</p>
+                          <p><strong>Applied for:</strong> ${event.title}</p>
+                          <p><strong>Applied on:</strong> ${appliedDate}</p>
+                        </div>
+                      </div>
+                      <div class="applicant-details">
+                        ${targetNotification.volunteerBio ? `<p><strong>Bio:</strong> ${targetNotification.volunteerBio}</p>` : ''}
+                        ${targetNotification.volunteerSkills && targetNotification.volunteerSkills.length > 0 ? 
+                          `<p><strong>Skills:</strong> ${targetNotification.volunteerSkills.join(', ')}</p>` : ''}
+                        ${targetNotification.volunteerLocation ? `<p><strong>Location:</strong> ${targetNotification.volunteerLocation}</p>` : ''}
+                        ${targetNotification.volunteerPhone ? `<p><strong>Phone:</strong> ${targetNotification.volunteerPhone}</p>` : ''}
+                      </div>
+                      <div class="applicant-actions">
+                        ${targetNotification.volunteerPhone ? `<a href="tel:${targetNotification.volunteerPhone}" class="contact-btn call">📞 Call</a>` : ''}
+                        <button class="contact-btn message" onclick="sendMessage('${volunteerId}', '${targetNotification.volunteerName}')">💬 Message</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+              
+              document.body.insertAdjacentHTML('beforeend', modalHTML);
+            } else {
+              showNotification('Application details not found', 'warning');
             }
+          })
+          .catch((error) => {
+            console.error('Error loading notification details:', error);
+            showNotification('Error loading application details', 'error');
           });
       } else {
-        showErrorToast('Event not found');
+        // Event has been deleted
+        showNotification('This event has been deleted', 'warning');
       }
     })
     .catch((error) => {
-      console.error('Error bookmarking event:', error);
-      showErrorToast('Error bookmarking event. Please try again.');
+      console.error('Error loading event details:', error);
+      showNotification('Error loading event details', 'error');
     });
 }
 
-// Update bookmark button appearance
-function updateBookmarkButton(eventId, isBookmarked) {
-  const bookmarkBtn = document.querySelector(`[onclick="bookmarkEvent('${eventId}')"]`);
-  if (bookmarkBtn) {
-    if (isBookmarked) {
-      bookmarkBtn.innerHTML = '📌 Bookmarked';
-      bookmarkBtn.classList.add('bookmarked');
-      bookmarkBtn.classList.remove('bookmark-btn');
-    } else {
-      bookmarkBtn.innerHTML = '📌 Bookmark';
-      bookmarkBtn.classList.remove('bookmarked');
-      bookmarkBtn.classList.add('bookmark-btn');
-    }
+// Close applicant modal
+function closeApplicantModal() {
+  const modal = document.querySelector('.applicant-modal-overlay');
+  if (modal) {
+    modal.remove();
   }
 }
 
-// Load user's bookmarked events
-function loadBookmarkedEvents() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const bookmarksContainer = document.getElementById('bookmarkedEvents');
-  if (!bookmarksContainer) return;
-
-  // Show skeleton loading
-  showSkeletonLoading(bookmarksContainer, 'events');
-
-  db.collection('users').doc(user.uid).get()
-    .then((userDoc) => {
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const bookmarks = userData.bookmarks || [];
-        
-        if (bookmarks.length === 0) {
-          bookmarksContainer.innerHTML = `
-            <div class="no-bookmarks">
-              <div class="no-bookmarks-icon">📌</div>
-              <h3>No bookmarked events</h3>
-              <p>Bookmark events you're interested in to see them here later.</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Get event details for each bookmark
-        const eventPromises = bookmarks.map(bookmark => 
-          db.collection('events').doc(bookmark.eventId).get()
-        );
-
-        Promise.all(eventPromises)
-          .then((eventDocs) => {
-            const events = eventDocs
-              .filter(doc => doc.exists)
-              .map(doc => ({ ...doc.data(), id: doc.id }));
-
-            displayBookmarkedEvents(events, bookmarks);
-          })
-          .catch((error) => {
-            console.error('Error loading bookmarked events:', error);
-            bookmarksContainer.innerHTML = '<p>Error loading bookmarked events.</p>';
-          });
-      }
-    })
-    .catch((error) => {
-      console.error('Error loading bookmarks:', error);
-      bookmarksContainer.innerHTML = '<p>Error loading bookmarks.</p>';
-    });
+// Close applicants modal
+function closeApplicantsModal() {
+  const modal = document.querySelector('.applicants-modal-overlay');
+  if (modal) {
+    modal.remove();
+  }
 }
 
-// Display bookmarked events
-function displayBookmarkedEvents(events, bookmarks) {
-  const bookmarksContainer = document.getElementById('bookmarkedEvents');
-  
-  let eventsHTML = '';
-  events.forEach((event) => {
-    const bookmark = bookmarks.find(b => b.eventId === event.id);
-    const eventDate = event.date ? new Date(event.date).toLocaleDateString() : 'TBD';
-    const category = EVENT_CATEGORIES[event.category] || EVENT_CATEGORIES.other;
-    const bookmarkedDate = bookmark?.bookmarkedAt ? new Date(bookmark.bookmarkedAt).toLocaleDateString() : '';
-    
-    // Calculate days until event
-    let daysUntilEvent = '';
-    let urgencyClass = '';
-    if (event.date) {
-      const today = new Date();
-      const eventDay = new Date(event.date);
-      const diffTime = eventDay - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      if (diffDays < 0) {
-        daysUntilEvent = 'Past event';
-        urgencyClass = 'past';
-      } else if (diffDays === 0) {
-        daysUntilEvent = 'Today';
-        urgencyClass = 'urgent';
-      } else if (diffDays === 1) {
-        daysUntilEvent = 'Tomorrow';
-        urgencyClass = 'urgent';
-      } else if (diffDays <= 3) {
-        daysUntilEvent = `${diffDays} days away`;
-        urgencyClass = 'urgent';
-      } else if (diffDays <= 7) {
-        daysUntilEvent = `${diffDays} days away`;
-        urgencyClass = 'soon';
-      } else {
-        daysUntilEvent = `${diffDays} days away`;
-        urgencyClass = 'upcoming';
-      }
-    }
-
-    eventsHTML += `
-      <div class="event-card-pro event-card bookmarked ${urgencyClass}">
-        <div class="event-pro-header">
-          <div class="event-pro-category">
-            <span class="event-pro-category-badge" style="background: linear-gradient(90deg, #eaf1fb, #f3f6f8); color: #0a66c2;">
-              ${category.icon} ${category.name}
-            </span>
-          </div>
-          <div class="event-pro-date-group">
-            <span class="event-pro-date"><span class="event-pro-date-icon">📅</span> ${eventDate}</span>
-            ${daysUntilEvent ? `<span class="event-pro-days ${urgencyClass}">${daysUntilEvent}</span>` : ''}
-          </div>
-          <div class="event-pro-badges">
-            <span class="event-pro-badge bookmarked">📌 Bookmarked</span>
-            ${event.urgent ? '<span class="event-pro-badge urgent">🚨 Urgent</span>' : ''}
-          </div>
-        </div>
-        
-        <div class="event-pro-body">
-          <h3 class="event-pro-title">${event.title}</h3>
-          <p class="event-pro-desc">${event.description ? event.description.substring(0, 120) + (event.description.length > 120 ? '...' : '') : ''}</p>
-          
-          <div class="event-pro-details-grid">
-            <div class="event-pro-detail">
-              <span class="event-pro-detail-icon">📍</span>
-              <span class="event-pro-detail-label">Location</span>
-              <span class="event-pro-detail-value">${event.location || 'TBD'}</span>
-            </div>
-            <div class="event-pro-detail">
-              <span class="event-pro-detail-icon">⏱️</span>
-              <span class="event-pro-detail-label">Duration</span>
-              <span class="event-pro-detail-value">${event.duration || 'TBD'}</span>
-            </div>
-            <div class="event-pro-detail">
-              <span class="event-pro-detail-icon">👥</span>
-              <span class="event-pro-detail-label">Volunteers</span>
-              <span class="event-pro-detail-value">${event.volunteersNeeded || 1}</span>
-            </div>
-            <div class="event-pro-detail">
-              <span class="event-pro-detail-icon">📌</span>
-              <span class="event-pro-detail-label">Bookmarked</span>
-              <span class="event-pro-detail-value">${bookmarkedDate}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="event-pro-actions">
-          <button onclick="removeBookmark('${event.id}')" class="event-pro-btn remove-bookmark">
-            🗑️ Remove Bookmark
-          </button>
-          <a href="event-detail.html?id=${event.id}" class="event-pro-btn secondary">View Details</a>
-          <button onclick="applyToEvent('${event.id}')" class="event-pro-btn primary">Apply Now</button>
-        </div>
-      </div>
-    `;
-  });
-  
-  bookmarksContainer.innerHTML = eventsHTML;
-}
-
-// Remove bookmark
-function removeBookmark(eventId) {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  db.collection('users').doc(user.uid).get()
-    .then((userDoc) => {
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const bookmarks = userData.bookmarks || [];
-        const updatedBookmarks = bookmarks.filter(bookmark => bookmark.eventId !== eventId);
-        
-        return db.collection('users').doc(user.uid).update({
-          bookmarks: updatedBookmarks
+// Logout functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Clear all caches
+      userDataCache = null;
+      eventsCache = null;
+      
+      // Clear localStorage and sessionStorage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Sign out from Firebase
+      auth.signOut()
+        .then(() => {
+          console.log('Logout successful');
+          showSuccessToast('Signed out successfully!', 'Goodbye');
+          setTimeout(() => {
+            window.location.href = 'login.html?logout=true';
+          }, 1500);
+        })
+        .catch((error) => {
+          console.error('Logout error:', error);
+          showErrorToast('Error signing out. Please try again.', 'Logout Failed');
         });
-      }
-    })
-    .then(() => {
-      showSuccessToast('Event removed from bookmarks', 'Bookmark Removed');
-      loadBookmarkedEvents(); // Refresh the bookmarks list
-    })
-    .catch((error) => {
-      console.error('Error removing bookmark:', error);
-      showErrorToast('Error removing bookmark. Please try again.');
     });
-}
-
-// Check if event is bookmarked (for display purposes)
-function checkBookmarkStatus(eventId) {
-  const user = auth.currentUser;
-  if (!user) return false;
-
-  return db.collection('users').doc(user.uid).get()
-    .then((userDoc) => {
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        const bookmarks = userData.bookmarks || [];
-        return bookmarks.some(bookmark => bookmark.eventId === eventId);
-      }
-      return false;
-    })
-    .catch((error) => {
-      console.error('Error checking bookmark status:', error);
-      return false;
-    });
-}
-
-
-
-
-
-
-
-
-
- 
+  }
+}); 
