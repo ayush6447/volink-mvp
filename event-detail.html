@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details – Volink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Volink</a>
+      <nav>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="profile.html">👤 Profile</a>
+        <a href="#" id="logoutBtn">🚪 Sign out</a>
+      </nav>
+    </div>
+  </header>
+  
+  <main>
+    <section class="event-detail-section">
+      <div class="container">
+        <div class="event-detail-container">
+          <!-- Event Header -->
+          <div class="event-detail-header">
+            <div class="event-header-content">
+              <div class="event-category-badge" id="eventCategory">
+                <!-- Category will be loaded here -->
+              </div>
+              <h1 id="eventTitle">Loading...</h1>
+              <p class="event-organizer" id="eventOrganizer">Organized by: Loading...</p>
+              <div class="event-meta">
+                <span class="event-date-badge" id="eventDateBadge">📅 Loading...</span>
+                <span class="event-location-badge" id="eventLocationBadge">📍 Loading...</span>
+                <span class="event-urgent-badge" id="eventUrgentBadge" style="display: none;">🚨 Urgent</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="event-detail-content">
+            <!-- Main Content -->
+            <div class="event-main-content">
+              <div class="event-description-card">
+                <h3>📝 About This Event</h3>
+                <p id="eventDescription">Loading...</p>
+              </div>
+              
+              <div class="event-details-card">
+                <h3>📋 Event Details</h3>
+                <div class="event-details-grid">
+                  <div class="detail-item">
+                    <span class="detail-icon">📅</span>
+                    <div class="detail-content">
+                      <strong>Date & Time</strong>
+                      <p id="eventDateTime">Loading...</p>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <span class="detail-icon">📍</span>
+                    <div class="detail-content">
+                      <strong>Location</strong>
+                      <p id="eventLocation">Loading...</p>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <span class="detail-icon">⏱️</span>
+                    <div class="detail-content">
+                      <strong>Duration</strong>
+                      <p id="eventDuration">Loading...</p>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <span class="detail-icon">👥</span>
+                    <div class="detail-content">
+                      <strong>Volunteers Needed</strong>
+                      <p id="eventVolunteers">Loading...</p>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <span class="detail-icon">🎯</span>
+                    <div class="detail-content">
+                      <strong>Skills Required</strong>
+                      <p id="eventSkills">Loading...</p>
+                    </div>
+                  </div>
+                  
+                  <div class="detail-item">
+                    <span class="detail-icon">💡</span>
+                    <div class="detail-content">
+                      <strong>What You'll Do</strong>
+                      <p id="eventTasks">Loading...</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="event-sidebar">
+              <div class="organizer-card">
+                <h3>🏢 About the Organizer</h3>
+                <div class="organizer-info" id="organizerInfo">
+                  <!-- Organizer info will be loaded here -->
+                </div>
+              </div>
+              
+              <div class="application-card">
+                <h3>✨ Apply to Volunteer</h3>
+                <div class="application-status" id="applicationStatus">
+                  <!-- Application status will be shown here -->
+                </div>
+                <button class="cta-btn primary" id="applyBtn" style="display: none;">
+                  ✨ Apply Now
+                </button>
+                <button class="cta-btn applied" id="appliedBtn" style="display: none;" disabled>
+                  ✅ Already Applied
+                </button>
+                <div class="application-note">
+                  <p>📝 By applying, you agree to participate in this volunteer opportunity.</p>
+                </div>
+              </div>
+              
+              <div class="event-actions-card">
+                <h3>🔗 Quick Actions</h3>
+                <div class="quick-actions">
+                  <button class="action-btn" onclick="window.history.back()">
+                    ← Back to Events
+                  </button>
+                  <button class="action-btn secondary" onclick="window.location.href='dashboard.html'">
+                    📊 Dashboard
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Volink. All rights reserved.</p>
+    </div>
+  </footer>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/event-detail.js"></script>
+</body>
+</html> 

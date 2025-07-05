@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile – Volink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Volink</a>
+      <nav>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="profile.html" class="active">👤 Profile</a>
+        <a href="index.html" id="logoutBtn">🚪 Sign out</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="profile-section-pro">
+      <div class="profile-card-pro">
+        <div class="profile-banner-pro" id="profileBannerContainer" style="display:none;">
+          <img id="bannerPreview" src="" alt="NGO Banner" class="profile-banner-img-pro">
+        </div>
+        <div class="profile-header-pro">
+          <div class="profile-avatar-pro">
+            <img id="profileImage" src="assets/images/default-avatar.svg" alt="Profile Image">
+            <div class="avatar-upload-pro">
+              <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+              <button class="avatar-upload-btn-pro" onclick="document.getElementById('imageUpload').click()">Change Photo</button>
+            </div>
+          </div>
+          <div class="profile-header-info-pro">
+            <h2 id="profileNameHeader">Your Name</h2>
+            <div class="profile-role-badge-pro" id="profileRoleBadge">Volunteer</div>
+            <div class="profile-email-pro" id="profileEmailHeader">your@email.com</div>
+          </div>
+        </div>
+        <div class="profile-container" id="profileContainer">
+          <div class="skeleton-profile-card">
+            <div class="skeleton-profile-header">
+              <div class="skeleton-profile-avatar"></div>
+              <div class="skeleton-profile-info">
+                <div class="skeleton-profile-name"></div>
+                <div class="skeleton-profile-role"></div>
+              </div>
+            </div>
+            <div class="skeleton-profile-form">
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+              <div class="skeleton-form-group">
+                <div class="skeleton-form-label"></div>
+                <div class="skeleton-form-input"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form class="profile-form-pro" id="profileForm" style="display: none;">
+          <div class="profile-section-title-pro">About</div>
+          <div class="profile-form-row-pro">
+            <div class="form-group-pro">
+              <label for="profileName">Name</label>
+              <input type="text" id="profileName" required>
+            </div>
+            <div class="form-group-pro">
+              <label for="profileEmail">Email</label>
+              <input type="email" id="profileEmail" readonly>
+            </div>
+          </div>
+          <div class="form-group-pro">
+            <label for="profileBio">Bio</label>
+            <textarea id="profileBio" rows="3" placeholder="Tell us about yourself..."></textarea>
+          </div>
+          <div class="profile-section-divider-pro"></div>
+          <div class="profile-section-title-pro">Skills & Interests</div>
+          <div class="profile-form-row-pro">
+            <div class="form-group-pro">
+              <label for="profileSkills">Skills (comma separated)</label>
+              <input type="text" id="profileSkills" placeholder="e.g., Teaching, Cooking, Programming">
+            </div>
+            <div class="form-group-pro">
+              <label for="profileInterests">Interests (comma separated)</label>
+              <input type="text" id="profileInterests" placeholder="e.g., Education, Environment, Healthcare">
+            </div>
+          </div>
+          <div class="profile-section-divider-pro"></div>
+          <div class="profile-section-title-pro">Contact</div>
+          <div class="profile-form-row-pro">
+            <div class="form-group-pro">
+              <label for="profilePhone">Phone</label>
+              <input type="text" id="profilePhone" placeholder="e.g., +91 9876543210">
+            </div>
+            <div class="form-group-pro">
+              <label for="profileLocation">Location</label>
+              <input type="text" id="profileLocation" placeholder="e.g., Delhi, India">
+            </div>
+          </div>
+          <div class="profile-section-divider-pro"></div>
+          <div class="profile-section-title-pro" id="ngoSectionTitle" style="display:none;">NGO Info</div>
+          <div id="ngoFields" style="display:none;">
+            <div class="form-group-pro">
+              <label for="profileMission">NGO Mission</label>
+              <textarea id="profileMission" rows="2" placeholder="Describe your NGO's mission..."></textarea>
+            </div>
+            <div class="form-group-pro">
+              <label for="bannerUpload">NGO Banner Image</label>
+              <input type="file" id="bannerUpload" accept="image/*">
+            </div>
+          </div>
+          <div class="profile-form-actions-pro">
+            <button type="submit" class="cta-btn">Save Changes</button>
+            <button type="button" class="cancel-btn" onclick="window.location.href='dashboard.html'">Cancel</button>
+          </div>
+          <p id="profileMessage" class="success-msg"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Volink. All rights reserved.</p>
+    </div>
+  </footer>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  <!-- Firebase Config -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html> 

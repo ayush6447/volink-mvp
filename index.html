@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Volink – Connect Volunteers & NGOs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/png" href="assets/images/icon-192.png">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Volink</a>
+      <nav>
+        <a href="login.html">Sign in</a>
+        <a href="register.html" class="cta-btn" style="width: auto; margin: 0;">Join now</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Connect Volunteers & NGOs</h1>
+        <p>Empowering change, one connection at a time. Join our community of volunteers and organizations making a difference.</p>
+        <div class="hero-actions">
+          <a href="register.html" class="cta-btn">Get Started</a>
+          <a href="login.html" class="secondary-btn">Sign In</a>
+        </div>
+      </div>
+    </section>
+    <section class="features">
+      <div class="container">
+        <h2 class="section-title">Why Choose Volink?</h2>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">👥</div>
+            <h3>For Volunteers</h3>
+            <p>Create your profile, browse events, and make an impact in your community. Track your volunteering journey and build meaningful connections.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🏢</div>
+            <h3>For NGOs</h3>
+            <p>Post tasks, find passionate volunteers, and grow your mission. Manage applications and build a strong volunteer network.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3>Track Impact</h3>
+            <p>See your volunteering history and the difference you make. Get insights into your contributions and community impact.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <strong>Built by Ayuda</strong>
+        <span class="footer-about">Empowering change, one connection at a time. Join us in making a difference.</span>
+      </div>
+      <div class="footer-socials">
+        <a href="https://www.instagram.com/aayudaco/" target="_blank" aria-label="Instagram" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5"/></svg></a>
+        <a href="https://www.linkedin.com/company/ayuuda/" target="_blank" aria-label="LinkedIn" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M7 10v7M7 7v.01M12 10v7m0-7c0-1.1.9-2 2-2s2 .9 2 2v7"/></svg></a>
+        <a href="https://x.com/Ayuda_official" target="_blank" aria-label="Twitter" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 4.01c-.77.35-1.6.59-2.47.7A4.13 4.13 0 0021.4 2.3a8.19 8.19 0 01-2.6 1A4.11 4.11 0 0012 6.13c0 .32.04.64.1.94A11.65 11.65 0 013 3.15a4.11 4.11 0 001.27 5.48A4.07 4.07 0 012 7.1v.05a4.11 4.11 0 003.3 4.03c-.4.11-.82.17-1.25.17-.3 0-.6-.03-.88-.08a4.13 4.13 0 003.84 2.85A8.24 8.24 0 012 19.54a11.62 11.62 0 006.29 1.84c7.55 0 11.68-6.26 11.68-11.68 0-.18-.01-.36-.02-.54A8.18 8.18 0 0022 4.01z"/></svg></a>
+        <a href="https://www.youtube.com/channel/UCvdNoU_Z3yaCQ1g0CqvHAgA" target="_blank" aria-label="YouTube" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M10 9.5v5l5-2.5-5-2.5z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/performance.js"></script>
+  
+  <!-- Register Service Worker for caching -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('service-worker.js');
+      });
+    }
+    
+    // Ensure complete logout when coming from logout
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check if we're coming from logout (URL parameter)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('logout') === 'true') {
+        console.log('Clearing auth state from logout');
+        
+        // Clear browser storage
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear any cached auth state
+        if (typeof auth !== 'undefined') {
+          auth.signOut().then(() => {
+            console.log('Manual logout completed');
+            // Remove the logout parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }).catch((error) => {
+            console.error('Manual logout error:', error);
+          });
+        }
+      }
+    });
+  </script>
+</body>
+</html> 

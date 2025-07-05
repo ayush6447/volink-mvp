@@ -1,0 +1,35 @@
+# Firebase Storage Security Rules
+# Copy these rules to your Firebase Console > Storage > Rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to upload profile images
+    match /profile-images/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow authenticated users to upload NGO banners
+    match /ngo-banners/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow public read access to profile images (for display)
+    match /profile-images/{userId}/{fileName} {
+      allow read: if true;
+    }
+    
+    // Allow public read access to NGO banners (for display)
+    match /ngo-banners/{userId}/{fileName} {
+      allow read: if true;
+    }
+  }
+}
+
+# Instructions to fix CORS issue:
+# 1. Go to Firebase Console: https://console.firebase.google.com/
+# 2. Select your project: volink-ea687
+# 3. Go to Storage > Rules
+# 4. Replace the existing rules with the rules above
+# 5. Click "Publish"
+# 6. Wait a few minutes for the rules to take effect 

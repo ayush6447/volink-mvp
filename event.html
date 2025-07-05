@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Details – Volink</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <span class="logo">Volink</span>
+      <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="index.html" id="logoutBtn">Logout</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="event-section">
+      <h2>Event Details</h2>
+      <div id="eventDetails">
+        <!-- Event details will be loaded here -->
+      </div>
+      <button class="cta-btn" id="applyBtn">Apply</button>
+      <p id="applyMsg" class="success-msg"></p>
+    </section>
+  </main>
+  <footer>
+    <div class="container">
+      <p>&copy; 2024 Volink. All rights reserved.</p>
+    </div>
+  </footer>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  
+  <!-- Firebase Config -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html> 

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Volink - Connect volunteers with NGOs for meaningful impact">
+  <meta name="theme-color" content="#0a66c2">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Dashboard – Volink</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style">
+  <link rel="preload" href="css/styles.css" as="style">
+  
+  <!-- DNS prefetch for external resources -->
+  <link rel="dns-prefetch" href="//www.gstatic.com">
+  <link rel="dns-prefetch" href="//fonts.googleapis.com">
+  
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://www.gstatic.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  
+  <!-- Load critical CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Preload Firebase SDKs -->
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" as="script">
+  <link rel="preload" href="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js" as="script">
+</head>
+<body>
+  <header class="navbar">
+    <div class="container">
+      <a href="index.html" class="logo">Volink</a>
+      <nav>
+        <a href="dashboard.html" class="active">📊 Dashboard</a>
+        <a href="profile.html">👤 Profile</a>
+        <a href="#" id="logoutBtn">🚪 Sign out</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section class="dashboard-section">
+      <h2>Dashboard</h2>
+      <div id="dashboardContent">
+        <!-- Role-based content will be loaded here -->
+        <div class="skeleton-stats-grid">
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-number"></div>
+            <div class="skeleton-stat-label"></div>
+          </div>
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-number"></div>
+            <div class="skeleton-stat-label"></div>
+          </div>
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-number"></div>
+            <div class="skeleton-stat-label"></div>
+          </div>
+          <div class="skeleton-stat-item">
+            <div class="skeleton-stat-number"></div>
+            <div class="skeleton-stat-label"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <strong>Built by Ayuda</strong>
+        <span class="footer-about">Empowering change, one connection at a time. Join us in making a difference.</span>
+      </div>
+      <div class="footer-socials">
+        <a href="https://www.instagram.com/aayudaco/" target="_blank" aria-label="Instagram" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5"/></svg></a>
+        <a href="https://www.linkedin.com/company/ayuuda/" target="_blank" aria-label="LinkedIn" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M7 10v7M7 7v.01M12 10v7m0-7c0-1.1.9-2 2-2s2 .9 2 2v7"/></svg></a>
+        <a href="https://x.com/Ayuda_official" target="_blank" aria-label="Twitter" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 4.01c-.77.35-1.6.59-2.47.7A4.13 4.13 0 0021.4 2.3a8.19 8.19 0 01-2.6 1A4.11 4.11 0 0012 6.13c0 .32.04.64.1.94A11.65 11.65 0 013 3.15a4.11 4.11 0 001.27 5.48A4.07 4.07 0 012 7.1v.05a4.11 4.11 0 003.3 4.03c-.4.11-.82.17-1.25.17-.3 0-.6-.03-.88-.08a4.13 4.13 0 003.84 2.85A8.24 8.24 0 012 19.54a11.62 11.62 0 006.29 1.84c7.55 0 11.68-6.26 11.68-11.68 0-.18-.01-.36-.02-.54A8.18 8.18 0 0022 4.01z"/></svg></a>
+        <a href="https://www.youtube.com/channel/UCvdNoU_Z3yaCQ1g0CqvHAgA" target="_blank" aria-label="YouTube" class="footer-social"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="4"/><path d="M10 9.5v5l5-2.5-5-2.5z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Firebase SDK - Load with defer for better performance -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+  
+  <!-- Firebase Config and Main App - Load after Firebase SDKs -->
+  <script defer src="js/firebase-config.js"></script>
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/auth.js"></script>
+  <script defer src="js/main.js?v=13"></script>
+  <script defer src="js/performance.js"></script>
+  
+  <!-- Completely disable Service Worker -->
+  <script>
+    // Completely disable service worker and clear all caches
+    if ('serviceWorker' in navigator) {
+      // Unregister all service workers
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          console.log('Unregistering service worker:', registration);
+          registration.unregister();
+        }
+      });
+      
+      // Clear all caches
+      if ('caches' in window) {
+        caches.keys().then(function(cacheNames) {
+          return Promise.all(
+            cacheNames.map(function(cacheName) {
+              console.log('Deleting cache:', cacheName);
+              return caches.delete(cacheName);
+            })
+          );
+        });
+      }
+      
+      // Prevent new service worker registration
+      navigator.serviceWorker.register = function() {
+        console.log('Service worker registration blocked');
+        return Promise.reject('Service worker disabled');
+      };
+    }
+    
+    // Debug authentication state
+    console.log('Dashboard page loaded');
+    console.log('Current URL:', window.location.href);
+    
+    // Test Firebase auth state
+    if (typeof auth !== 'undefined') {
+      console.log('Firebase auth object found');
+      auth.onAuthStateChanged(function(user) {
+        console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Logged out');
+      });
+    } else {
+      console.log('Firebase auth object NOT found');
+    }
+    
+    // Force logout function
+    window.clearAllAndLogout = function() {
+      console.log('Force logout triggered');
+      
+      // Clear all storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear cookies
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+      
+      // Clear Firebase persistence
+      if (typeof auth !== 'undefined') {
+        auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+          .then(() => {
+            return auth.signOut();
+          })
+          .then(() => {
+            console.log('Force logout successful');
+            window.location.replace('login.html?logout=true');
+          })
+          .catch((error) => {
+            console.error('Force logout error:', error);
+            window.location.replace('login.html?logout=true');
+          });
+      } else {
+        window.location.replace('login.html?logout=true');
+      }
+    };
+  </script>
+</body>
+</html> 
