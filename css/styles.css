@@ -5656,3 +5656,203 @@ input, textarea, select {
     max-width: 100%;
   }
 }
+
+/* Applicant Modal Styles */
+.applicant-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease;
+}
+
+.applicant-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideInFromTop 0.3s ease;
+}
+
+.applicant-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px 16px 0 0;
+}
+
+.applicant-modal-header h3 {
+  margin: 0;
+  color: #191919;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.applicant-modal-header .close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666666;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.applicant-modal-header .close-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #191919;
+}
+
+.applicant-modal-content {
+  padding: 2rem;
+}
+
+.applicant-profile {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.applicant-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0a66c2 0%, #0073b1 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.applicant-info h4 {
+  margin: 0 0 0.5rem 0;
+  color: #191919;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.applicant-info p {
+  margin: 0.25rem 0;
+  color: #666666;
+  font-size: 0.875rem;
+}
+
+.applicant-details {
+  margin-bottom: 1.5rem;
+}
+
+.applicant-details p {
+  margin: 0.75rem 0;
+  color: #191919;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.applicant-details strong {
+  color: #191919;
+  font-weight: 600;
+}
+
+.applicant-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.contact-btn {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contact-btn.call {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+
+.contact-btn.call:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.contact-btn.message {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+}
+
+.contact-btn.message:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+
+
+@media (max-width: 768px) {
+  .applicant-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .applicant-modal-header {
+    padding: 1rem 1.5rem;
+  }
+  
+  .applicant-modal-content {
+    padding: 1.5rem;
+  }
+  
+  .applicant-profile {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .applicant-avatar {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .applicant-actions {
+    justify-content: center;
+  }
+  
+  .contact-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
